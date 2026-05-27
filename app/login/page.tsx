@@ -50,9 +50,7 @@ export default function LoginPage() {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `http://localhost:3000/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   }
 
