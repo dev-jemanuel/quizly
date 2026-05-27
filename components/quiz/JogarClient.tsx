@@ -167,11 +167,13 @@ export default function JogarClient({ quizId, slug, title, type, questions, resu
           {question.text}
         </h2>
         {question.image_url && (
-          <img
-            src={question.image_url}
-            alt="Imagem da pergunta"
-            className="w-full rounded-2xl object-cover max-h-48"
-          />
+          <div className="mb-5 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
+            <img
+              src={question.image_url}
+              alt="Imagem da pergunta"
+              className="w-full object-contain max-h-64"
+            />
+          </div>
         )}
       </div>
 
