@@ -7,11 +7,12 @@ import { createClient } from "@/lib/supabase/client";
 type Props = {
   followingId: string;
   initialFollowing: boolean;
-  onUpdate?: (following: boolean) => void;
+  initialFollowersCount: number;
 };
 
-export default function FollowButton({ followingId, initialFollowing, onUpdate }: Props) {
+export default function FollowButton({ followingId, initialFollowing, initialFollowersCount }: Props) {
   const [following, setFollowing] = useState(initialFollowing);
+  const [followersCount, setFollowersCount] = useState(initialFollowersCount);
   const [loading, setLoading] = useState(false);
 
   async function handleToggle() {
@@ -32,13 +33,13 @@ export default function FollowButton({ followingId, initialFollowing, onUpdate }
           .eq("follower_id", user.id)
           .eq("following_id", followingId);
         setFollowing(false);
-        onUpdate?.(false);
+        setFollowersCount(c => c - 1);
       } else {
         await supabase
           .from("follows")
           .insert({ follower_id: user.id, following_id: followingId });
         setFollowing(true);
-        onUpdate?.(true);
+        setFollowersCount(c => c + 1);
       }
     } catch (err) {
       console.error(err);
@@ -48,19 +49,24 @@ export default function FollowButton({ followingId, initialFollowing, onUpdate }
   }
 
   return (
-    <button
-      onClick={handleToggle}
-      disabled={loading}
-      className={`flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-xl transition-all ${
-        following
-          ? "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500"
-          : "bg-purple-600 text-white hover:bg-purple-700"
-      } disabled:opacity-50`}
-    >
-      {following
-        ? <><UserMinus size={15} weight="bold" /> Seguindo</>
-        : <><UserPlus size={15} weight="bold" /> Seguir</>
-      }
-    </button>
+    <div className="flex flex-col items-center gap-1">
+      <button
+        onClick={handleToggle}
+        disabled={loading}
+        className={`flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-xl transition-all ${
+          following
+            ? "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500"
+            : "bg-purple-600 text-white hover:bg-purple-700"
+        } disabled:opacity-50`}
+      >
+        {following
+          ? <><UserMinus size={15} weight="bold" /> Seguindo</>
+          : <><UserPlus size={15} weight="bold" /> Seguir</>
+        }
+      </button>
+      <span className="text-xs text-gray-400 font-medium">
+        {followersCount.toLocaleString("pt-BR")} seguidores
+      </span>
+    </div>
   );
 }

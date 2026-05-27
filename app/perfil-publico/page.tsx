@@ -70,8 +70,12 @@ async function PerfilPublicoContent({ id }: { id: string }) {
             <p className="text-xs text-gray-400">{quizzes?.length ?? 0} quizzes criados</p>
           </div>
           {!isOwnProfile && currentUser && (
-            <FollowButton followingId={id} initialFollowing={isFollowing} />
-          )}
+            <FollowButton
+                followingId={id}
+                initialFollowing={isFollowing}
+                initialFollowersCount={profile.followers_count ?? 0}
+            />
+            )}
           {isOwnProfile && (
             <Link href="/perfil" className="text-sm font-bold text-purple-600 bg-purple-50 px-4 py-2 rounded-xl">
               Meu perfil
@@ -79,19 +83,15 @@ async function PerfilPublicoContent({ id }: { id: string }) {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-50">
-          <div className="text-center">
+        <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-50">
+        <div className="text-center">
             <p className="text-lg font-bold text-gray-900">{quizzes?.length ?? 0}</p>
             <p className="text-xs text-gray-400">Quizzes</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold text-gray-900">{(profile.followers_count ?? 0).toLocaleString("pt-BR")}</p>
-            <p className="text-xs text-gray-400">Seguidores</p>
-          </div>
-          <div className="text-center">
+        </div>
+        <div className="text-center">
             <p className="text-lg font-bold text-gray-900">{totalPlays.toLocaleString("pt-BR")}</p>
             <p className="text-xs text-gray-400">Jogadas</p>
-          </div>
+        </div>
         </div>
       </div>
 

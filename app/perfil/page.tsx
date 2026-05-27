@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { createClient } from "@/lib/supabase/server";
 import { Trophy, Lightning, GameController, SignIn, Plus } from "@phosphor-icons/react/dist/ssr";
-import QuizCard from "@/components/quiz/QuizCard";
 import Link from "next/link";
 import LogoutButton from "@/components/layout/LogoutButton";
 import MyQuizCard from "@/components/quiz/MyQuizCard";
@@ -27,21 +26,26 @@ async function PerfilContent() {
     );
   }
 
-  // Busca quizzes reais do usuário
+  // Busca quizzes do usuário
   const { data: myQuizzes } = await supabase
     .from("quizzes")
     .select("*, questions(id)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  // Busca plays do usuário
+  const { data: myPlays } = await supabase
+    .from("plays")
+    .select("id")
+    .eq("user_id", user.id);
+
   const name = user.user_metadata?.full_name ?? user.email ?? "Usuário";
   const email = user.email ?? "";
   const avatarUrl = user.user_metadata?.avatar_url;
   const initials = name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
-  const totalPlays = myQuizzes?.reduce((acc, q) => acc + (q.plays_count ?? 0), 0) ?? 0;
-  const knowledgeCount = myQuizzes?.filter(q => q.type === "knowledge").length ?? 0;
-  const personalityCount = myQuizzes?.filter(q => q.type === "personality").length ?? 0;
+  const totalPlaysReceived = myQuizzes?.reduce((acc, q) => acc + (q.plays_count ?? 0), 0) ?? 0;
+  const totalPlayed = myPlays?.length ?? 0;
 
   return (
     <main className="pb-24 px-4 py-6">
@@ -71,18 +75,18 @@ async function PerfilContent() {
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center">
           <Trophy size={20} weight="fill" className="text-purple-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-gray-900">{knowledgeCount}</p>
-          <p className="text-xs text-gray-400">Conhecimento</p>
+          <p className="text-lg font-bold text-gray-900">{myQuizzes?.length ?? 0}</p>
+          <p className="text-xs text-gray-400">Criados</p>
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center">
           <GameController size={20} weight="fill" className="text-purple-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-gray-900">{totalPlays.toLocaleString("pt-BR")}</p>
-          <p className="text-xs text-gray-400">Jogadas</p>
+          <p className="text-lg font-bold text-gray-900">{totalPlayed}</p>
+          <p className="text-xs text-gray-400">Jogados</p>
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-3 text-center">
           <Lightning size={20} weight="fill" className="text-purple-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-gray-900">{personalityCount}</p>
-          <p className="text-xs text-gray-400">Personalidade</p>
+          <p className="text-lg font-bold text-gray-900">{totalPlaysReceived.toLocaleString("pt-BR")}</p>
+          <p className="text-xs text-gray-400">Recebidas</p>
         </div>
       </div>
 
