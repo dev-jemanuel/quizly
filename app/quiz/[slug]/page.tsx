@@ -110,6 +110,11 @@ async function QuizDetailContent({ slug }: { slug: string }) {
         <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-green-50 text-green-700 border border-green-100 px-3 py-1.5 rounded-xl">
           <Users size={13} weight="fill" /> {(quiz.plays_count ?? 0).toLocaleString("pt-BR")} jogadas
         </span>
+        {(quiz.likes_count ?? 0) > 0 && (
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-red-50 text-red-500 border border-red-100 px-3 py-1.5 rounded-xl">
+            ❤️ {(quiz.likes_count ?? 0).toLocaleString("pt-BR")} curtidas
+          </span>
+        )}
       </div>
 
       {/* Criador */}
