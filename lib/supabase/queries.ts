@@ -77,6 +77,7 @@ export async function createQuiz({
     id: string;
     title: string;
     description: string;
+    image_url?: string | null;
     order: number;
   }[];
 }) {
@@ -110,6 +111,7 @@ export async function createQuiz({
         quiz_id: quiz.id,
         title: r.title,
         description: r.description,
+        image_url: (r as any).image_url ?? null,
         order: r.order,
       })))
       .select();
