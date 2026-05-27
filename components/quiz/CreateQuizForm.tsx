@@ -218,8 +218,8 @@ export default function CreateQuizForm() {
         {[1, 2, type === "personality" ? 3 : null].filter(Boolean).map((s, i, arr) => (
           <div key={s} className="flex items-center flex-1 last:flex-none">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${step > s! ? "bg-purple-600 text-white" :
-                step === s! ? "bg-purple-600 text-white ring-4 ring-purple-100" :
-                  "bg-purple-100 text-purple-400"
+              step === s! ? "bg-purple-600 text-white ring-4 ring-purple-100" :
+                "bg-purple-100 text-purple-400"
               }`}>
               {step > s! ? <Check size={14} weight="bold" /> : s}
             </div>
@@ -263,8 +263,8 @@ export default function CreateQuizForm() {
                   key={cat}
                   onClick={() => setCategory(cat)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${category === cat
-                      ? "bg-purple-600 text-white"
-                      : "bg-white border border-gray-100 text-gray-500 hover:border-purple-200"
+                    ? "bg-purple-600 text-white"
+                    : "bg-white border border-gray-100 text-gray-500 hover:border-purple-200"
                     }`}
                 >
                   {cat}
@@ -313,6 +313,12 @@ export default function CreateQuizForm() {
             Continuar <ArrowRight size={18} weight="bold" />
           </button>
         </div>
+      )}
+
+      {questions.some(q => !q.options.some(o => o.is_correct)) && (
+        <p className="text-xs text-red-500 font-medium text-center mb-2">
+          ⚠️ Todas as perguntas precisam ter uma alternativa correta marcada
+        </p>
       )}
 
       {/* ── ETAPA 2 — Knowledge: Perguntas ── */}
@@ -376,9 +382,7 @@ export default function CreateQuizForm() {
 
           <button
             onClick={handlePublish}
-            disabled={loading || questions.some(q => !q.text.trim())}
-            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${!loading && questions.every(q => q.text.trim()) ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-100 text-purple-300 cursor-not-allowed"
-              }`}
+            disabled={loading || questions.some(q => !q.text.trim()) || questions.some(q => !q.options.some(o => o.is_correct))}
           >
             {loading ? "Publicando..." : "🚀 Publicar quiz"}
           </button>

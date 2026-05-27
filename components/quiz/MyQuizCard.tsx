@@ -92,8 +92,8 @@ export default function MyQuizCard({
 
           {menuOpen && (
             <>
-              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-10 z-20 bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden w-44">
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="absolute right-0 bottom-10 z-50 bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden w-44">
                 <Link
                   href={`/quiz/${slug}`}
                   className="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
