@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash, Check } from "@phosphor-icons/react";
+import { ArrowLeft, Check } from "@phosphor-icons/react";
 import { createClient } from "@/lib/supabase/client";
 import ImageUpload from "./ImageUpload";
+import InlineImageUpload from "./InlineImageUpload";
 
 type Option = {
   id: string;
@@ -16,6 +17,7 @@ type Option = {
 type Question = {
   id: string;
   text: string;
+  image_url: string | null;
   options: Option[];
 };
 
@@ -23,6 +25,7 @@ type Result = {
   id: string;
   title: string;
   description: string;
+  image_url: string | null;
 };
 
 type Quiz = {
@@ -50,9 +53,11 @@ export default function EditarQuizForm({ quiz }: { quiz: Quiz }) {
   const [questions, setQuestions] = useState<Question[]>(quiz.questions);
   const [results, setResults] = useState<Result[]>(quiz.results);
 
-  // ── Handlers questions ──
   function updateQuestion(qId: string, text: string) {
     setQuestions(qs => qs.map(q => q.id === qId ? { ...q, text } : q));
+  }
+  function updateQuestionImage(qId: string, url: string | null) {
+    setQuestions(qs => qs.map(q => q.id === qId ? { ...q, image_url: url } : q));
   }
   function updateOption(qId: string, oId: string, text: string) {
     setQuestions(qs => qs.map(q => q.id === qId ? {
@@ -75,43 +80,38 @@ export default function EditarQuizForm({ quiz }: { quiz: Quiz }) {
   function updateResult(rId: string, field: "title" | "description", value: string) {
     setResults(rs => rs.map(r => r.id === rId ? { ...r, [field]: value } : r));
   }
+  function updateResultImage(rId: string, url: string | null) {
+    setResults(rs => rs.map(r => r.id === rId ? { ...r, image_url: url } : r));
+  }
 
   async function handleSave() {
     setLoading(true);
     try {
       const supabase = createClient();
 
-      // Atualiza info do quiz
       await supabase
         .from("quizzes")
         .update({ title, description, category, image_url: imageUrl })
         .eq("id", quiz.id);
 
-      // Atualiza perguntas
       for (const q of questions) {
         await supabase
           .from("questions")
-          .update({ text: q.text })
+          .update({ text: q.text, image_url: q.image_url })
           .eq("id", q.id);
 
-        // Atualiza opções
         for (const o of q.options) {
           await supabase
             .from("options")
-            .update({
-              text: o.text,
-              is_correct: o.is_correct,
-              result_id: o.result_id,
-            })
+            .update({ text: o.text, is_correct: o.is_correct, result_id: o.result_id })
             .eq("id", o.id);
         }
       }
 
-      // Atualiza resultados (personality)
       for (const r of results) {
         await supabase
           .from("results")
-          .update({ title: r.title, description: r.description })
+          .update({ title: r.title, description: r.description, image_url: r.image_url })
           .eq("id", r.id);
       }
 
@@ -191,7 +191,7 @@ export default function EditarQuizForm({ quiz }: { quiz: Quiz }) {
           </div>
         </div>
 
-        {/* Imagem */}
+        {/* Imagem do quiz */}
         <ImageUpload
           userId={quiz.id}
           currentImage={imageUrl}
@@ -215,7 +215,13 @@ export default function EditarQuizForm({ quiz }: { quiz: Quiz }) {
                     value={r.description}
                     onChange={e => updateResult(r.id, "description", e.target.value)}
                     rows={2}
-                    className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none resize-none"
+                    className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none resize-none mb-2"
+                  />
+                  <InlineImageUpload
+                    userId={quiz.id}
+                    currentImage={r.image_url}
+                    onUpload={(url) => updateResultImage(r.id, url)}
+                    label="Imagem do resultado"
                   />
                 </div>
               ))}
@@ -233,7 +239,13 @@ export default function EditarQuizForm({ quiz }: { quiz: Quiz }) {
                 <input
                   value={q.text}
                   onChange={e => updateQuestion(q.id, e.target.value)}
-                  className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-900 outline-none mb-3"
+                  className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-900 outline-none mb-2"
+                />
+                <InlineImageUpload
+                  userId={quiz.id}
+                  currentImage={q.image_url}
+                  onUpload={(url) => updateQuestionImage(q.id, url)}
+                  label="Imagem da pergunta"
                 />
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => (

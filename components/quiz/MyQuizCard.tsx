@@ -47,7 +47,7 @@ export default function MyQuizCard({
   }
 
   return (
-    <div className={`bg-white border border-gray-100 rounded-2xl overflow-hidden transition-all ${deleting ? "opacity-50" : ""}`}>
+    <div className={`bg-white border border-gray-100 rounded-2xl transition-all ${deleting ? "opacity-50" : ""}`}>
 
       {/* Imagem ou banner colorido */}
       {image_url ? (
