@@ -15,6 +15,7 @@ type Option = {
 type Question = {
   id: string;
   text: string;
+  image_url?: string | null;
   options: Option[];
 };
 
@@ -162,9 +163,16 @@ export default function JogarClient({ quizId, slug, title, type, questions, resu
         <p className="text-xs font-bold text-purple-400 uppercase tracking-wide mb-2">
           Pergunta {current + 1}
         </p>
-        <h2 className="text-lg font-bold text-gray-900 leading-snug">
+        <h2 className="text-lg font-bold text-gray-900 leading-snug mb-3">
           {question.text}
         </h2>
+        {question.image_url && (
+          <img
+            src={question.image_url}
+            alt="Imagem da pergunta"
+            className="w-full rounded-2xl object-cover max-h-48"
+          />
+        )}
       </div>
 
       {/* Opções */}

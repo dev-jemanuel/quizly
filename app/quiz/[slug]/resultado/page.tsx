@@ -25,14 +25,18 @@ function ResultadoContent() {
   const resultId = searchParams.get("result_id");
   const isPersonality = !!resultId;
 
-  const [personalityResult, setPersonalityResult] = useState<{ title: string; description: string } | null>(null);
+  const [personalityResult, setPersonalityResult] = useState<{ 
+    title: string; 
+    description: string;
+    image_url?: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (resultId) {
       const supabase = createClient();
       supabase
         .from("results")
-        .select("title, description")
+        .select("title, description, image_url")
         .eq("id", resultId)
         .single()
         .then(({ data }) => {
@@ -65,13 +69,22 @@ function ResultadoContent() {
         </div>
 
         {/* Resultado personality */}
-        {isPersonality && personalityResult && (
-          <div className="bg-purple-600 rounded-2xl p-6 text-center mb-4">
-            <p className="text-purple-200 text-xs uppercase tracking-wide mb-2">Você é...</p>
-            <p className="text-3xl font-bold text-white mb-3">{personalityResult.title}</p>
-            <p className="text-purple-200 text-sm leading-relaxed">{personalityResult.description}</p>
-          </div>
-        )}
+          {isPersonality && personalityResult && (
+            <div className="bg-purple-600 rounded-2xl overflow-hidden mb-4">
+              {personalityResult.image_url && (
+                <img
+                  src={personalityResult.image_url}
+                  alt={personalityResult.title}
+                  className="w-full h-48 object-cover"
+                />
+              )}
+              <div className="p-6 text-center">
+                <p className="text-purple-200 text-xs uppercase tracking-wide mb-2">Você é...</p>
+                <p className="text-3xl font-bold text-white mb-3">{personalityResult.title}</p>
+                <p className="text-purple-200 text-sm leading-relaxed">{personalityResult.description}</p>
+              </div>
+            </div>
+          )}
 
         {/* Resultado knowledge */}
         {!isPersonality && (

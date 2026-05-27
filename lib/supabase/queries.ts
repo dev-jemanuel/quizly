@@ -64,6 +64,7 @@ export async function createQuiz({
   image_url?: string | null;
   questions: {
     text: string;
+    image_url?: string | null;
     order: number;
     options: {
       text: string;
@@ -124,7 +125,7 @@ export async function createQuiz({
   for (const q of questions) {
     const { data: question, error: qError } = await supabase
       .from("questions")
-      .insert({ quiz_id: quiz.id, text: q.text, order: q.order })
+      .insert({ quiz_id: quiz.id, text: q.text, image_url: q.image_url ?? null, order: q.order })
       .select()
       .single();
 
