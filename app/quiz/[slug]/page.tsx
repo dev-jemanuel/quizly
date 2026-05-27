@@ -137,7 +137,7 @@ async function QuizDetailContent({ slug }: { slug: string }) {
             Resultados possíveis
           </p>
           <div className="flex flex-wrap gap-2">
-            {results.map(r => (
+            {results.map((r: { id: string; title: string }) => (
               <span key={r.id} className="inline-flex items-center gap-1 text-xs font-bold bg-purple-100 text-purple-700 px-3 py-1.5 rounded-xl">
                 ✨ {r.title}
               </span>
@@ -153,7 +153,7 @@ async function QuizDetailContent({ slug }: { slug: string }) {
             Prévia das perguntas
           </p>
           <div className="space-y-2">
-            {questions.slice(0, 3).map((q, i) => (
+            {questions.slice(0, 3).map((q: { id: string; text: string }, i: number) => (
               <div key={q.id} className="flex items-start gap-2 text-sm text-gray-700">
                 <span className="text-purple-400 font-bold text-xs mt-0.5 w-4 flex-shrink-0">{i + 1}.</span>
                 <span>{q.text}</span>
