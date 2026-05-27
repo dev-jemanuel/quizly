@@ -193,8 +193,12 @@ async function QuizDetailContent({ slug }: { slug: string }) {
   );
 }
 
-export default async function QuizDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+async function QuizDetailWrapper({ paramsPromise }: { paramsPromise: Promise<{ slug: string }> }) {
+  const { slug } = await paramsPromise;
+  return <QuizDetailContent slug={slug} />;
+}
+
+export default function QuizDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   return (
     <PageLayout>
       <Suspense fallback={
@@ -202,7 +206,7 @@ export default async function QuizDetailPage({ params }: { params: Promise<{ slu
           <p className="text-purple-600 font-bold">Carregando...</p>
         </div>
       }>
-        <QuizDetailContent slug={slug} />
+        <QuizDetailWrapper paramsPromise={params} />
       </Suspense>
     </PageLayout>
   );
