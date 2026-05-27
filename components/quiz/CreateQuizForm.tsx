@@ -32,6 +32,7 @@ type Result = {
 };
 
 const categories = ["Geografia", "Ciências", "História", "Cultura pop", "Esportes", "Tecnologia", "Personalidade", "Outro"];
+const optionLetters = ["A", "B", "C", "D", "E", "F"];
 
 function newOption(counter: { v: number }, resultId: string | null = null): Option {
   counter.v += 1;
@@ -64,7 +65,6 @@ export default function CreateQuizForm() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Etapa 1
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -85,6 +85,7 @@ export default function CreateQuizForm() {
   ]);
   const [personalityQuestions, setPersonalityQuestions] = useState<Question[]>(() => [newQuestion(counter.current)]);
 
+  // ── Handlers knowledge ──
   function updateQuestion(qId: string, text: string) {
     setQuestions(qs => qs.map(q => q.id === qId ? { ...q, text } : q));
   }
@@ -104,7 +105,18 @@ export default function CreateQuizForm() {
   function removeQuestion(qId: string) {
     setQuestions(qs => qs.filter(q => q.id !== qId));
   }
+  function addOption(qId: string) {
+    setQuestions(qs => qs.map(q => q.id === qId && q.options.length < 6 ? {
+      ...q, options: [...q.options, newOption(counter.current)]
+    } : q));
+  }
+  function removeOption(qId: string, oId: string) {
+    setQuestions(qs => qs.map(q => q.id === qId && q.options.length > 2 ? {
+      ...q, options: q.options.filter(o => o.id !== oId)
+    } : q));
+  }
 
+  // ── Handlers personality ──
   function updateResult(rId: string, field: "title" | "description", value: string) {
     setResults(rs => rs.map(r => r.id === rId ? { ...r, [field]: value } : r));
   }
@@ -132,6 +144,16 @@ export default function CreateQuizForm() {
   }
   function removePQuestion(qId: string) {
     setPersonalityQuestions(qs => qs.filter(q => q.id !== qId));
+  }
+  function addPOption(qId: string) {
+    setPersonalityQuestions(qs => qs.map(q => q.id === qId && q.options.length < 6 ? {
+      ...q, options: [...q.options, newOption(counter.current)]
+    } : q));
+  }
+  function removePOption(qId: string, oId: string) {
+    setPersonalityQuestions(qs => qs.map(q => q.id === qId && q.options.length > 2 ? {
+      ...q, options: q.options.filter(o => o.id !== oId)
+    } : q));
   }
 
   async function handlePublish() {
@@ -173,7 +195,6 @@ export default function CreateQuizForm() {
     }
   }
 
-  const optionLetters = ["A", "B", "C", "D"];
   const knowledgeHasMissingCorrect = type === "knowledge" && questions.some(q => !q.options.some(o => o.is_correct));
 
   return (
@@ -339,8 +360,21 @@ export default function CreateQuizForm() {
                           opt.is_correct ? "border-green-300 bg-green-50 text-green-800" : "border-gray-100 focus:border-purple-300 text-gray-900"
                         }`}
                       />
+                      {q.options.length > 2 && (
+                        <button onClick={() => removeOption(q.id, opt.id)}>
+                          <Trash size={14} className="text-gray-300 hover:text-red-400 transition-colors" />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {q.options.length < 6 && (
+                    <button
+                      onClick={() => addOption(q.id)}
+                      className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-purple-400 border border-dashed border-purple-200 rounded-xl py-2 hover:border-purple-400 transition-colors mt-1"
+                    >
+                      <Plus size={12} weight="bold" /> Adicionar alternativa
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -482,8 +516,21 @@ export default function CreateQuizForm() {
                           <option key={r.id} value={r.id}>{r.title}</option>
                         ))}
                       </select>
+                      {q.options.length > 2 && (
+                        <button onClick={() => removePOption(q.id, opt.id)}>
+                          <Trash size={14} className="text-gray-300 hover:text-red-400 transition-colors" />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {q.options.length < 6 && (
+                    <button
+                      onClick={() => addPOption(q.id)}
+                      className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-purple-400 border border-dashed border-purple-200 rounded-xl py-2 hover:border-purple-400 transition-colors mt-1"
+                    >
+                      <Plus size={12} weight="bold" /> Adicionar alternativa
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
