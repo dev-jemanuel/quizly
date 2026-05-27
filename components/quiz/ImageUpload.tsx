@@ -10,6 +10,38 @@ type Props = {
   onUpload: (url: string | null) => void;
 };
 
+async function compressImage(file: File, maxWidth = 1200, quality = 0.85): Promise<File> {
+  return new Promise((resolve) => {
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+          } else {
+            resolve(file);
+          }
+        },
+        "image/jpeg",
+        quality
+      );
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
+
 export default function ImageUpload({ userId, currentImage, onUpload }: Props) {
   const [preview, setPreview] = useState<string | null>(currentImage);
   const [uploading, setUploading] = useState(false);
@@ -20,27 +52,26 @@ export default function ImageUpload({ userId, currentImage, onUpload }: Props) {
       alert("Só imagens são permitidas.");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Imagem muito grande. Máximo 2MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Máximo 10MB.");
       return;
     }
 
     setUploading(true);
     try {
       const supabase = createClient();
-      const ext = file.name.split(".").pop();
-      const path = `${userId}/${Date.now()}.${ext}`;
+
+      // Comprime antes de enviar
+      const compressed = await compressImage(file);
+      const path = `${userId}/${Date.now()}.jpg`;
 
       const { error } = await supabase.storage
         .from("quiz-images")
-        .upload(path, file, { upsert: true });
+        .upload(path, compressed, { upsert: true, contentType: "image/jpeg" });
 
       if (error) throw error;
 
-      const { data } = supabase.storage
-        .from("quiz-images")
-        .getPublicUrl(path);
-
+      const { data } = supabase.storage.from("quiz-images").getPublicUrl(path);
       setPreview(data.publicUrl);
       onUpload(data.publicUrl);
     } catch (err) {

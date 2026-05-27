@@ -11,6 +11,41 @@ type Props = {
   label?: string;
 };
 
+async function compressImage(file: File, maxWidth = 1200, quality = 0.85): Promise<File> {
+  return new Promise((resolve) => {
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let { width, height } = img;
+
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+          } else {
+            resolve(file);
+          }
+        },
+        "image/jpeg",
+        quality
+      );
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
+
 export default function InlineImageUpload({ userId, currentImage, onUpload, label = "Adicionar imagem" }: Props) {
   const [preview, setPreview] = useState<string | null>(currentImage);
   const [uploading, setUploading] = useState(false);
@@ -18,21 +53,21 @@ export default function InlineImageUpload({ userId, currentImage, onUpload, labe
 
   async function handleFile(file: File) {
     if (!file.type.startsWith("image/")) return;
-    if (file.size > 2 * 1024 * 1024) { alert("Máximo 2MB."); return; }
+    if (file.size > 10 * 1024 * 1024) { alert("Máximo 10MB."); return; }
 
     setUploading(true);
     try {
       const supabase = createClient();
 
-      const { data: { user } } = await supabase.auth.getUser();
-        console.log("Usuário logado:", user?.id);
+      // Comprime antes de enviar
+      const compressed = await compressImage(file);
 
-      const ext = file.name.split(".").pop();
+      const ext = "jpg";
       const path = `${userId}/${Date.now()}.${ext}`;
 
       const { error } = await supabase.storage
         .from("quiz-images")
-        .upload(path, file, { upsert: true });
+        .upload(path, compressed, { upsert: true, contentType: "image/jpeg" });
 
       if (error) throw error;
 
