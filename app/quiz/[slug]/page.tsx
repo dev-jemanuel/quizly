@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Lightning, Trophy, Users, Question, ShareNetwork, WhatsappLogo, Copy } from "@phosphor-icons/react/dist/ssr";
 import PageLayout from "@/components/layout/PageLayout";
 import { createClient } from "@/lib/supabase/server";
+import ShareButtons from "@/components/quiz/ShareButtons";
 
 async function QuizDetailContent({ slug }: { slug: string }) {
   const supabase = await createClient();
@@ -182,17 +183,7 @@ async function QuizDetailContent({ slug }: { slug: string }) {
       </Link>
 
       {/* Compartilhar */}
-      <div className="grid grid-cols-3 gap-2">
-        <button className="flex items-center justify-center gap-1.5 bg-white border border-gray-100 rounded-xl py-3 text-xs font-bold text-gray-600 hover:border-purple-200 transition-colors">
-          <ShareNetwork size={15} weight="bold" /> Compartilhar
-        </button>
-        <button className="flex items-center justify-center gap-1.5 bg-white border border-gray-100 rounded-xl py-3 text-xs font-bold text-gray-600 hover:border-purple-200 transition-colors">
-          <Copy size={15} weight="bold" /> Copiar link
-        </button>
-        <button className="flex items-center justify-center gap-1.5 bg-green-50 border border-green-100 rounded-xl py-3 text-xs font-bold text-green-700 hover:border-green-300 transition-colors">
-          <WhatsappLogo size={15} weight="bold" /> WhatsApp
-        </button>
-      </div>
+      <ShareButtons title={quiz.title} />
 
     </main>
   );

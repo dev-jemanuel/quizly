@@ -8,6 +8,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import LikeButton from "@/components/quiz/LikeButton";
+import ShareButtons from "@/components/quiz/ShareButtons";
 
 function getScoreMessage(pct: number) {
   if (pct === 100) return { emoji: "🏆", title: "Perfeito!", sub: "Você acertou tudo! Incrível!" };
@@ -175,17 +176,10 @@ function ResultadoContent() {
         {/* Compartilhar */}
         <div className="mb-4">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Compartilhar resultado</p>
-          <div className="grid grid-cols-3 gap-2">
-            <button className="flex items-center justify-center gap-1.5 bg-purple-600 text-white rounded-xl py-3 text-xs font-bold hover:bg-purple-700 transition-colors">
-              <ShareNetwork size={15} weight="bold" /> Compartilhar
-            </button>
-            <button className="flex items-center justify-center gap-1.5 bg-white border border-gray-100 rounded-xl py-3 text-xs font-bold text-gray-600 hover:border-purple-200 transition-colors">
-              <Copy size={15} weight="bold" /> Copiar link
-            </button>
-            <button className="flex items-center justify-center gap-1.5 bg-green-50 border border-green-100 rounded-xl py-3 text-xs font-bold text-green-700 hover:border-green-300 transition-colors">
-              <WhatsappLogo size={15} weight="bold" /> WhatsApp
-            </button>
-          </div>
+          <ShareButtons
+            title={isPersonality && personalityResult ? personalityResult.title : "Quiz"}
+            url={typeof window !== "undefined" ? window.location.origin + "/quiz/" + window.location.pathname.split("/")[2] : ""}
+          />
         </div>
 
         {/* Jogar novamente */}
