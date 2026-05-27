@@ -85,6 +85,7 @@ export default function EditarQuizForm({ quiz }: { quiz: Quiz }) {
   }
 
   async function handleSave() {
+    console.log("Results:", JSON.stringify(results, null, 2));
     setLoading(true);
     try {
       const supabase = createClient();
