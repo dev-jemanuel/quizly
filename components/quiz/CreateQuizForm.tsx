@@ -72,46 +72,44 @@ export default function CreateQuizForm() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>("");
 
-  // Busca userId ao montar
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => {
       if (data.user) setUserId(data.user.id);
     });
   }, []);
 
-  // Etapa 2 — knowledge
   const [questions, setQuestions] = useState<Question[]>(() => [newQuestion(counter.current)]);
-
-  // Etapa 2/3 — personality
   const [results, setResults] = useState<Result[]>(() => [
     newResult(counter.current),
     newResult(counter.current),
   ]);
   const [personalityQuestions, setPersonalityQuestions] = useState<Question[]>(() => [newQuestion(counter.current)]);
 
-  // ── Handlers knowledge ──
   function updateQuestion(qId: string, text: string) {
     setQuestions(qs => qs.map(q => q.id === qId ? { ...q, text } : q));
   }
+  function updateQuestionImage(qId: string, url: string | null) {
+    setQuestions(qs => qs.map(q => q.id === qId ? { ...q, image_url: url } : q));
+  }
   function updateOption(qId: string, oId: string, text: string) {
     setQuestions(qs => qs.map(q => q.id === qId ? {
-      ...q,
-      options: q.options.map(o => o.id === oId ? { ...o, text } : o)
+      ...q, options: q.options.map(o => o.id === oId ? { ...o, text } : o)
     } : q));
   }
   function setCorrect(qId: string, oId: string) {
     setQuestions(qs => qs.map(q => q.id === qId ? {
-      ...q,
-      options: q.options.map(o => ({ ...o, is_correct: o.id === oId }))
+      ...q, options: q.options.map(o => ({ ...o, is_correct: o.id === oId }))
     } : q));
   }
   function removeQuestion(qId: string) {
     setQuestions(qs => qs.filter(q => q.id !== qId));
   }
 
-  // ── Handlers personality ──
   function updateResult(rId: string, field: "title" | "description", value: string) {
     setResults(rs => rs.map(r => r.id === rId ? { ...r, [field]: value } : r));
+  }
+  function updateResultImage(rId: string, url: string | null) {
+    setResults(rs => rs.map(r => r.id === rId ? { ...r, image_url: url } : r));
   }
   function removeResult(rId: string) {
     setResults(rs => rs.filter(r => r.id !== rId));
@@ -119,44 +117,29 @@ export default function CreateQuizForm() {
   function updatePQuestion(qId: string, text: string) {
     setPersonalityQuestions(qs => qs.map(q => q.id === qId ? { ...q, text } : q));
   }
+  function updatePQuestionImage(qId: string, url: string | null) {
+    setPersonalityQuestions(qs => qs.map(q => q.id === qId ? { ...q, image_url: url } : q));
+  }
   function updatePOption(qId: string, oId: string, text: string) {
     setPersonalityQuestions(qs => qs.map(q => q.id === qId ? {
-      ...q,
-      options: q.options.map(o => o.id === oId ? { ...o, text } : o)
+      ...q, options: q.options.map(o => o.id === oId ? { ...o, text } : o)
     } : q));
   }
   function setPOptionResult(qId: string, oId: string, resultId: string) {
     setPersonalityQuestions(qs => qs.map(q => q.id === qId ? {
-      ...q,
-      options: q.options.map(o => o.id === oId ? { ...o, result_id: resultId } : o)
+      ...q, options: q.options.map(o => o.id === oId ? { ...o, result_id: resultId } : o)
     } : q));
   }
   function removePQuestion(qId: string) {
     setPersonalityQuestions(qs => qs.filter(q => q.id !== qId));
   }
-  function updateQuestionImage(qId: string, url: string | null) {
-    setQuestions(qs => qs.map(q => q.id === qId ? { ...q, image_url: url } : q));
-  }
 
-  function updatePQuestionImage(qId: string, url: string | null) {
-    setPersonalityQuestions(qs => qs.map(q => q.id === qId ? { ...q, image_url: url } : q));
-  }
-
-  function updateResultImage(rId: string, url: string | null) {
-    setResults(rs => rs.map(r => r.id === rId ? { ...r, image_url: url } : r));
-  }
-
-  // ── Publicar ──
   async function handlePublish() {
     setLoading(true);
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/login");
-        return;
-      }
+      if (!user) { router.push("/login"); return; }
 
       const qs = type === "knowledge" ? questions : personalityQuestions;
 
@@ -178,10 +161,7 @@ export default function CreateQuizForm() {
             order: j,
           })),
         })),
-        results: type === "personality" ? results.map((r, i) => ({
-          ...r,
-          order: i,
-        })) : [],
+        results: type === "personality" ? results.map((r, i) => ({ ...r, order: i })) : [],
       });
 
       router.push("/perfil");
@@ -194,6 +174,7 @@ export default function CreateQuizForm() {
   }
 
   const optionLetters = ["A", "B", "C", "D"];
+  const knowledgeHasMissingCorrect = type === "knowledge" && questions.some(q => !q.options.some(o => o.is_correct));
 
   return (
     <div className="pb-24 px-4 py-6">
@@ -217,10 +198,11 @@ export default function CreateQuizForm() {
       <div className="flex items-center mb-6">
         {[1, 2, type === "personality" ? 3 : null].filter(Boolean).map((s, i, arr) => (
           <div key={s} className="flex items-center flex-1 last:flex-none">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${step > s! ? "bg-purple-600 text-white" :
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+              step > s! ? "bg-purple-600 text-white" :
               step === s! ? "bg-purple-600 text-white ring-4 ring-purple-100" :
-                "bg-purple-100 text-purple-400"
-              }`}>
+              "bg-purple-100 text-purple-400"
+            }`}>
               {step > s! ? <Check size={14} weight="bold" /> : s}
             </div>
             {i < arr.length - 1 && (
@@ -230,7 +212,7 @@ export default function CreateQuizForm() {
         ))}
       </div>
 
-      {/* ── ETAPA 1 — Informações ── */}
+      {/* ── ETAPA 1 ── */}
       {step === 1 && (
         <div className="space-y-4">
           <div>
@@ -262,10 +244,9 @@ export default function CreateQuizForm() {
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${category === cat
-                    ? "bg-purple-600 text-white"
-                    : "bg-white border border-gray-100 text-gray-500 hover:border-purple-200"
-                    }`}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
+                    category === cat ? "bg-purple-600 text-white" : "bg-white border border-gray-100 text-gray-500 hover:border-purple-200"
+                  }`}
                 >
                   {cat}
                 </button>
@@ -295,33 +276,23 @@ export default function CreateQuizForm() {
             </div>
           </div>
 
-          {/* Upload de imagem */}
           {userId && (
-            <ImageUpload
-              userId={userId}
-              currentImage={imageUrl}
-              onUpload={setImageUrl}
-            />
+            <ImageUpload userId={userId} currentImage={imageUrl} onUpload={setImageUrl} />
           )}
 
           <button
             onClick={() => setStep(2)}
             disabled={!title.trim()}
-            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${title.trim() ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-100 text-purple-300 cursor-not-allowed"
-              }`}
+            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${
+              title.trim() ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-100 text-purple-300 cursor-not-allowed"
+            }`}
           >
             Continuar <ArrowRight size={18} weight="bold" />
           </button>
         </div>
       )}
 
-      {questions.some(q => !q.options.some(o => o.is_correct)) && (
-        <p className="text-xs text-red-500 font-medium text-center mb-2">
-          ⚠️ Todas as perguntas precisam ter uma alternativa correta marcada
-        </p>
-      )}
-
-      {/* ── ETAPA 2 — Knowledge: Perguntas ── */}
+      {/* ── ETAPA 2 — Knowledge ── */}
       {step === 2 && type === "knowledge" && (
         <div>
           <h2 className="text-base font-bold text-gray-900 mb-4">Perguntas</h2>
@@ -353,8 +324,9 @@ export default function CreateQuizForm() {
                   {q.options.map((opt, oi) => (
                     <div key={opt.id} className="flex items-center gap-2">
                       <span
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 cursor-pointer transition-all ${opt.is_correct ? "bg-green-500 text-white" : "bg-purple-100 text-purple-600"
-                          }`}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 cursor-pointer transition-all ${
+                          opt.is_correct ? "bg-green-500 text-white" : "bg-purple-100 text-purple-600"
+                        }`}
                         onClick={() => setCorrect(q.id, opt.id)}
                       >
                         {opt.is_correct ? <Check size={12} weight="bold" /> : optionLetters[oi]}
@@ -363,8 +335,9 @@ export default function CreateQuizForm() {
                         value={opt.text}
                         onChange={e => updateOption(q.id, opt.id, e.target.value)}
                         placeholder={`Opção ${optionLetters[oi]}`}
-                        className={`flex-1 bg-[#F8F7FF] border rounded-xl px-3 py-2 text-sm font-medium outline-none transition-all ${opt.is_correct ? "border-green-300 bg-green-50 text-green-800" : "border-gray-100 focus:border-purple-300 text-gray-900"
-                          }`}
+                        className={`flex-1 bg-[#F8F7FF] border rounded-xl px-3 py-2 text-sm font-medium outline-none transition-all ${
+                          opt.is_correct ? "border-green-300 bg-green-50 text-green-800" : "border-gray-100 focus:border-purple-300 text-gray-900"
+                        }`}
                       />
                     </div>
                   ))}
@@ -375,14 +348,25 @@ export default function CreateQuizForm() {
 
           <button
             onClick={() => setQuestions(qs => [...qs, newQuestion(counter.current)])}
-            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-purple-200 text-purple-500 font-bold text-sm py-3.5 rounded-2xl mt-4 mb-4 hover:border-purple-400 transition-colors"
+            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-purple-200 text-purple-500 font-bold text-sm py-3.5 rounded-2xl mt-4 mb-2 hover:border-purple-400 transition-colors"
           >
             <Plus size={16} weight="bold" /> Adicionar pergunta
           </button>
 
+          {knowledgeHasMissingCorrect && (
+            <p className="text-xs text-red-500 font-medium text-center mb-2">
+              ⚠️ Todas as perguntas precisam ter uma alternativa correta marcada
+            </p>
+          )}
+
           <button
             onClick={handlePublish}
-            disabled={loading || questions.some(q => !q.text.trim()) || questions.some(q => !q.options.some(o => o.is_correct))}
+            disabled={loading || questions.some(q => !q.text.trim()) || knowledgeHasMissingCorrect}
+            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${
+              !loading && questions.every(q => q.text.trim()) && !knowledgeHasMissingCorrect
+                ? "bg-purple-600 text-white hover:bg-purple-700"
+                : "bg-purple-100 text-purple-300 cursor-not-allowed"
+            }`}
           >
             {loading ? "Publicando..." : "🚀 Publicar quiz"}
           </button>
@@ -416,7 +400,13 @@ export default function CreateQuizForm() {
                   onChange={e => updateResult(r.id, "description", e.target.value)}
                   placeholder="Descreva esse perfil..."
                   rows={2}
-                  className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none resize-none"
+                  className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none resize-none mb-2"
+                />
+                <InlineImageUpload
+                  userId={userId}
+                  currentImage={r.image_url}
+                  onUpload={(url) => updateResultImage(r.id, url)}
+                  label="Imagem do resultado"
                 />
               </div>
             ))}
@@ -430,8 +420,9 @@ export default function CreateQuizForm() {
           <button
             onClick={() => setStep(3)}
             disabled={results.some(r => !r.title.trim())}
-            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${results.every(r => r.title.trim()) ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-100 text-purple-300 cursor-not-allowed"
-              }`}
+            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${
+              results.every(r => r.title.trim()) ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-100 text-purple-300 cursor-not-allowed"
+            }`}
           >
             Continuar <ArrowRight size={18} weight="bold" />
           </button>
@@ -458,7 +449,13 @@ export default function CreateQuizForm() {
                   value={q.text}
                   onChange={e => updatePQuestion(q.id, e.target.value)}
                   placeholder="Digite a pergunta..."
-                  className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-900 outline-none mb-3"
+                  className="w-full bg-[#F8F7FF] border border-gray-100 focus:border-purple-300 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-900 outline-none mb-2"
+                />
+                <InlineImageUpload
+                  userId={userId}
+                  currentImage={q.image_url}
+                  onUpload={(url) => updatePQuestionImage(q.id, url)}
+                  label="Adicionar imagem à pergunta"
                 />
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Alternativas — associe ao resultado</p>
                 <div className="space-y-2">
@@ -476,8 +473,9 @@ export default function CreateQuizForm() {
                       <select
                         value={opt.result_id ?? ""}
                         onChange={e => setPOptionResult(q.id, opt.id, e.target.value)}
-                        className={`text-xs font-bold rounded-xl px-2 py-2 outline-none border transition-all ${opt.result_id ? "bg-purple-50 border-purple-200 text-purple-700" : "bg-gray-50 border-gray-100 text-gray-400"
-                          }`}
+                        className={`text-xs font-bold rounded-xl px-2 py-2 outline-none border transition-all ${
+                          opt.result_id ? "bg-purple-50 border-purple-200 text-purple-700" : "bg-gray-50 border-gray-100 text-gray-400"
+                        }`}
                       >
                         <option value="">Resultado</option>
                         {results.map(r => (
@@ -499,8 +497,11 @@ export default function CreateQuizForm() {
           <button
             onClick={handlePublish}
             disabled={loading || personalityQuestions.some(q => !q.text.trim())}
-            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${!loading && personalityQuestions.every(q => q.text.trim()) ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-100 text-purple-300 cursor-not-allowed"
-              }`}
+            className={`w-full font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-all ${
+              !loading && personalityQuestions.every(q => q.text.trim())
+                ? "bg-purple-600 text-white hover:bg-purple-700"
+                : "bg-purple-100 text-purple-300 cursor-not-allowed"
+            }`}
           >
             {loading ? "Publicando..." : "🚀 Publicar quiz"}
           </button>
