@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowCounterClockwise, ShareNetwork, WhatsappLogo, Copy } fr
 import PageLayout from "@/components/layout/PageLayout";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
+import LikeButton from "@/components/quiz/LikeButton";
 
 function getScoreMessage(pct: number) {
   if (pct === 100) return { emoji: "🏆", title: "Perfeito!", sub: "Você acertou tudo! Incrível!" };
@@ -25,11 +26,14 @@ function ResultadoContent() {
   const resultId = searchParams.get("result_id");
   const isPersonality = !!resultId;
 
-  const [personalityResult, setPersonalityResult] = useState<{ 
-    title: string; 
+  const [personalityResult, setPersonalityResult] = useState<{
+    title: string;
     description: string;
     image_url?: string | null;
   } | null>(null);
+
+  const [quizData, setQuizData] = useState<{ id: string; likes_count: number } | null>(null);
+  const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
     if (resultId) {
@@ -44,6 +48,34 @@ function ResultadoContent() {
         });
     }
   }, [resultId]);
+
+  useEffect(() => {
+    async function fetchQuiz() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const slug = window.location.pathname.split("/")[2];
+
+      const { data: quiz } = await supabase
+        .from("quizzes")
+        .select("id, likes_count")
+        .eq("slug", slug)
+        .single();
+
+      if (quiz) {
+        setQuizData(quiz);
+        if (user) {
+          const { data: like } = await supabase
+            .from("likes")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("quiz_id", quiz.id)
+            .single();
+          setIsLiked(!!like);
+        }
+      }
+    }
+    fetchQuiz();
+  }, []);
 
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const { emoji, title, sub } = getScoreMessage(pct);
@@ -69,22 +101,22 @@ function ResultadoContent() {
         </div>
 
         {/* Resultado personality */}
-          {isPersonality && personalityResult && (
-            <div className="bg-purple-600 rounded-2xl overflow-hidden mb-4">
-              {personalityResult.image_url && (
-                <img
-                  src={personalityResult.image_url}
-                  alt={personalityResult.title}
-                  className="w-full h-48 object-cover"
-                />
-              )}
-              <div className="p-6 text-center">
-                <p className="text-purple-200 text-xs uppercase tracking-wide mb-2">Você é...</p>
-                <p className="text-3xl font-bold text-white mb-3">{personalityResult.title}</p>
-                <p className="text-purple-200 text-sm leading-relaxed">{personalityResult.description}</p>
-              </div>
+        {isPersonality && personalityResult && (
+          <div className="bg-purple-600 rounded-2xl overflow-hidden mb-4">
+            {personalityResult.image_url && (
+              <img
+                src={personalityResult.image_url}
+                alt={personalityResult.title}
+                className="w-full h-48 object-cover"
+              />
+            )}
+            <div className="p-6 text-center">
+              <p className="text-purple-200 text-xs uppercase tracking-wide mb-2">Você é...</p>
+              <p className="text-3xl font-bold text-white mb-3">{personalityResult.title}</p>
+              <p className="text-purple-200 text-sm leading-relaxed">{personalityResult.description}</p>
             </div>
-          )}
+          </div>
+        )}
 
         {/* Resultado knowledge */}
         {!isPersonality && (
@@ -129,6 +161,17 @@ function ResultadoContent() {
           </div>
         )}
 
+        {/* Curtir */}
+        {quizData && (
+          <div className="mb-4">
+            <LikeButton
+              quizId={quizData.id}
+              initialLiked={isLiked}
+              initialCount={quizData.likes_count ?? 0}
+            />
+          </div>
+        )}
+
         {/* Compartilhar */}
         <div className="mb-4">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Compartilhar resultado</p>
@@ -148,7 +191,7 @@ function ResultadoContent() {
         {/* Jogar novamente */}
         <button
           onClick={() => router.back()}
-          className="w-full flex items-center justify-center gap-2 bg-white border border-gray-100 text-purple-600 font-bold text-sm py-3.5 rounded-2xl mb-4 hover:border-purple-200 transition-colors"
+          className="w-full flex items-center justify-center gap-2 bg-white border border-gray-100 text-purple-600 font-bold text-sm py-3.5 rounded-2xl mb-3 hover:border-purple-200 transition-colors"
         >
           <ArrowCounterClockwise size={16} weight="bold" />
           {isPersonality ? "Refazer quiz" : "Jogar novamente"}

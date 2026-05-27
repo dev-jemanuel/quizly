@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Lightning, Trophy, Users } from "@phosphor-icons/react";
+import { Lightning, Trophy, Users, Heart } from "@phosphor-icons/react";
 
 type QuizCardProps = {
   id: string;
@@ -13,6 +13,7 @@ type QuizCardProps = {
   plays_count: number;
   emoji?: string;
   image_url?: string | null;
+  likes_count?: number;
 };
 
 const categoryColors: Record<string, string> = {
@@ -57,6 +58,7 @@ export default function QuizCard({
   plays_count,
   emoji,
   image_url,
+  likes_count,
 }: QuizCardProps) {
   const cat = category ?? "default";
   const colorClass = categoryColors[cat] ?? categoryColors.default;
@@ -97,11 +99,16 @@ export default function QuizCard({
 
           <p className="text-sm font-bold text-gray-900 truncate mb-1">{title}</p>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-gray-400">{questions_count} perguntas</span>
             <span className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 font-bold px-1.5 py-0.5 rounded-md">
               <Users size={10} weight="fill" /> {plays_count.toLocaleString("pt-BR")}
             </span>
+            {(likes_count ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs bg-red-50 text-red-500 font-bold px-1.5 py-0.5 rounded-md">
+                <Heart size={10} weight="fill" /> {(likes_count ?? 0).toLocaleString("pt-BR")}
+              </span>
+            )}
           </div>
         </div>
 
