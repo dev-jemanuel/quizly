@@ -79,7 +79,11 @@ async function UsuarioContent({ id }: { id: string }) {
             <p className="text-xs text-gray-400">{quizzes?.length ?? 0} quizzes criados</p>
           </div>
           {!isOwnProfile && currentUser && (
-            <FollowButton followingId={id} initialFollowing={isFollowing} />
+            <FollowButton
+                followingId={id}
+                initialFollowing={isFollowing}
+                initialFollowersCount={profile.followers_count ?? 0}
+                />
           )}
           {isOwnProfile && (
             <Link href="/perfil" className="text-sm font-bold text-purple-600 bg-purple-50 px-4 py-2 rounded-xl">
