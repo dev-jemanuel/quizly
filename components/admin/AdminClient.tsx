@@ -8,6 +8,7 @@ import Link from "next/link";
 
 type Quiz = {
     id: string;
+    slug: string;
     title: string;
     description: string;
     type: "knowledge" | "personality";
@@ -100,7 +101,7 @@ function QuizModerationCard({
                 {/* Ações */}
                 <div className="flex gap-2">
                     <Link
-                        href={`/quiz/${quiz.id}`}
+                        href={`/quiz/${quiz.slug}`}
                         target="_blank"
                         className="flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-50 px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors"
                     >
