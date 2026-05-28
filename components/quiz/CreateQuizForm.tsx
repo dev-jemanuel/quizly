@@ -186,7 +186,7 @@ export default function CreateQuizForm() {
         results: type === "personality" ? results.map((r, i) => ({ ...r, order: i })) : [],
       });
 
-      router.push("/perfil");
+      router.push("/perfil?created=true");
     } catch (err) {
       console.error(err);
       alert("Erro ao publicar quiz. Tente novamente.");

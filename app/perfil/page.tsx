@@ -6,9 +6,11 @@ import Link from "next/link";
 import LogoutButton from "@/components/layout/LogoutButton";
 import MyQuizCard from "@/components/quiz/MyQuizCard";
 
-async function PerfilContent() {
+async function PerfilContent({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const params = await searchParams;
+  const created = params?.created === "true";
 
   if (!user) {
     return (
@@ -26,14 +28,12 @@ async function PerfilContent() {
     );
   }
 
-  // Busca quizzes do usuário
   const { data: myQuizzes } = await supabase
     .from("quizzes")
     .select("*, questions(id)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // Busca plays do usuário
   const { data: myPlays } = await supabase
     .from("plays")
     .select("id")
@@ -55,6 +55,17 @@ async function PerfilContent() {
         </span>
         <LogoutButton />
       </div>
+
+      {/* Aviso de quiz enviado para aprovação */}
+      {created && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-start gap-3">
+          <span className="text-xl">⏳</span>
+          <div>
+            <p className="text-sm font-bold text-amber-800">Quiz enviado para aprovação!</p>
+            <p className="text-xs text-amber-600 mt-0.5">Seu quiz será revisado em breve e aparecerá na plataforma após aprovação.</p>
+          </div>
+        </div>
+      )}
 
       {/* Avatar */}
       <div className="bg-white border border-gray-100 rounded-2xl px-5 py-5 flex items-center gap-4 mb-5">
@@ -111,6 +122,7 @@ async function PerfilContent() {
               questions_count={q.questions?.length ?? 0}
               plays_count={q.plays_count ?? 0}
               image_url={q.image_url}
+              status={q.status}
             />
           ))}
         </div>
@@ -131,7 +143,11 @@ async function PerfilContent() {
   );
 }
 
-export default function PerfilPage() {
+async function PerfilWrapper({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
+  return <PerfilContent searchParams={searchParams} />;
+}
+
+export default function PerfilPage({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
   return (
     <PageLayout>
       <Suspense fallback={
@@ -139,7 +155,7 @@ export default function PerfilPage() {
           <p className="text-purple-600 font-bold">Carregando...</p>
         </div>
       }>
-        <PerfilContent />
+        <PerfilWrapper searchParams={searchParams} />
       </Suspense>
     </PageLayout>
   );

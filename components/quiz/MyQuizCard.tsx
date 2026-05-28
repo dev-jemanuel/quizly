@@ -15,6 +15,7 @@ type MyQuizCardProps = {
   questions_count: number;
   plays_count: number;
   image_url?: string | null;
+  status?: string | null;
 };
 
 export default function MyQuizCard({
@@ -26,6 +27,7 @@ export default function MyQuizCard({
   questions_count,
   plays_count,
   image_url,
+  status,
 }: MyQuizCardProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,6 +57,16 @@ export default function MyQuizCard({
       ) : (
         <div className={`w-full h-20 flex items-center justify-center text-4xl ${type === "personality" ? "bg-yellow-50" : "bg-purple-50"}`}>
           {type === "personality" ? "✨" : "🧠"}
+        </div>
+      )}
+
+      {/* Badge status */}
+      {status && status !== "approved" && (
+        <div className={`px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 ${status === "pending"
+            ? "bg-amber-50 text-amber-600 border-b border-amber-100"
+            : "bg-red-50 text-red-500 border-b border-red-100"
+          }`}>
+          {status === "pending" ? "⏳ Aguardando aprovação" : "❌ Rejeitado"}
         </div>
       )}
 
