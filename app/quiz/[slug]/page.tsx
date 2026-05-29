@@ -176,13 +176,6 @@ async function QuizDetailContent({ slug }: { slug: string }) {
         </div>
       )}
 
-      {/* Ranking — só knowledge */}
-      {quiz.type === "knowledge" && (
-        <div className="mb-4">
-          <RankingQuiz quizId={quiz.id} currentUserId={user?.id ?? null} />
-        </div>
-      )}
-
       {/* Botão jogar */}
       <Link
         href={`/quiz/${quiz.slug}/jogar`}
@@ -190,6 +183,13 @@ async function QuizDetailContent({ slug }: { slug: string }) {
       >
         {isPersonality ? "✨ Descobrir meu resultado" : "🎯 Jogar agora"}
       </Link>
+
+      {/* Ranking — só knowledge */}
+      {quiz.type === "knowledge" && (
+        <div className="mb-4">
+          <RankingQuiz quizId={quiz.id} currentUserId={user?.id ?? null} />
+        </div>
+      )}
 
       {/* Compartilhar */}
       <ShareButtons title={quiz.title} />
