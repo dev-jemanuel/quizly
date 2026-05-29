@@ -3,6 +3,7 @@ import { MagnifyingGlass, Plus, Lightning, Trophy, Users } from "@phosphor-icons
 import PageLayout from "@/components/layout/PageLayout";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
+import FeaturedCarousel from "@/components/quiz/FeaturedCarousel";
 
 const categoryBg: Record<string, string> = {
   Geografia: "bg-purple-50",
@@ -175,14 +176,9 @@ async function HomeContent() {
         </div>
 
         {/* Em destaque */}
-        {featured && (
-          <>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-base font-bold text-gray-900">⭐ Em destaque</span>
-            </div>
-            <FeaturedCard quiz={featured} />
-          </>
-        )}
+          {topQuizzes.length > 0 && (
+            <FeaturedCarousel quizzes={topQuizzes.slice(0, 3)} />
+          )}
 
         {/* Mais jogados */}
         {topQuizzes.length > 0 && (
