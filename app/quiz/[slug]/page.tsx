@@ -5,6 +5,7 @@ import { ArrowLeft, Lightning, Trophy, Users, Question, ShareNetwork, WhatsappLo
 import PageLayout from "@/components/layout/PageLayout";
 import { createClient } from "@/lib/supabase/server";
 import ShareButtons from "@/components/quiz/ShareButtons";
+import RankingQuiz from "@/components/quiz/RankingQuiz";
 
 async function QuizDetailContent({ slug }: { slug: string }) {
   const supabase = await createClient();
@@ -173,6 +174,11 @@ async function QuizDetailContent({ slug }: { slug: string }) {
           </div>
         </div>
       )}
+
+      {/* Ranking — só knowledge */}
+        {quiz.type === "knowledge" && (
+          <RankingQuiz quizId={quiz.id} currentUserId={user?.id ?? null} />
+        )}
 
       {/* Botão jogar */}
       <Link
