@@ -9,6 +9,7 @@ import RankingQuiz from "@/components/quiz/RankingQuiz";
 
 async function QuizDetailContent({ slug }: { slug: string }) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: quiz } = await supabase
     .from("quizzes")
@@ -176,9 +177,11 @@ async function QuizDetailContent({ slug }: { slug: string }) {
       )}
 
       {/* Ranking — só knowledge */}
-        {quiz.type === "knowledge" && (
+      {quiz.type === "knowledge" && (
+        <div className="mb-4">
           <RankingQuiz quizId={quiz.id} currentUserId={user?.id ?? null} />
-        )}
+        </div>
+      )}
 
       {/* Botão jogar */}
       <Link
