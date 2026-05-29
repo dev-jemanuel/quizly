@@ -147,14 +147,58 @@ async function PerfilWrapper({ searchParams }: { searchParams: Promise<{ created
   return <PerfilContent searchParams={searchParams} />;
 }
 
+function PerfilLoading() {
+  return (
+    <main className="min-h-screen bg-[#F0EFFE] pb-24">
+      <div className="px-4 pt-5 pb-3 flex items-center justify-between mb-5">
+        <div className="w-24 h-7 bg-purple-100 rounded-xl animate-pulse" />
+        <div className="w-16 h-8 bg-white rounded-xl animate-pulse" />
+      </div>
+      <div className="px-4">
+        <div className="bg-white rounded-2xl p-5 flex items-center gap-4 mb-5 animate-pulse">
+          <div className="w-14 h-14 rounded-full bg-purple-100 flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="w-32 h-4 bg-gray-100 rounded-lg" />
+            <div className="w-48 h-3 bg-gray-100 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[1,2,3].map(i => (
+            <div key={i} className="bg-white rounded-2xl p-3 text-center animate-pulse">
+              <div className="w-5 h-5 bg-purple-100 rounded-full mx-auto mb-2" />
+              <div className="w-8 h-5 bg-gray-100 rounded mx-auto mb-1" />
+              <div className="w-12 h-3 bg-gray-100 rounded mx-auto" />
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="w-28 h-5 bg-gray-200 rounded-lg animate-pulse" />
+          <div className="w-16 h-4 bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse">
+              <div className="w-full h-32 bg-purple-100" />
+              <div className="p-3 space-y-2">
+                <div className="w-20 h-4 bg-gray-100 rounded-lg" />
+                <div className="w-full h-4 bg-gray-100 rounded-lg" />
+                <div className="flex gap-2">
+                  <div className="w-12 h-4 bg-gray-100 rounded-md" />
+                  <div className="w-16 h-4 bg-gray-100 rounded-md" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default function PerfilPage({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
   return (
     <PageLayout>
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-purple-600 font-bold">Carregando...</p>
-        </div>
-      }>
+      <Suspense fallback={<PerfilLoading />}>
         <PerfilWrapper searchParams={searchParams} />
       </Suspense>
     </PageLayout>
