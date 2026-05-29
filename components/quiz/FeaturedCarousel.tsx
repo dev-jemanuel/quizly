@@ -29,6 +29,9 @@ const categoryEmojis: Record<string, string> = {
 export default function FeaturedCarousel({ quizzes }: { quizzes: Quiz[] }) {
   const [current, setCurrent] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+  const isDragging = useRef(false);
 
   useEffect(() => {
     if (quizzes.length <= 1) return;
@@ -53,6 +56,50 @@ export default function FeaturedCarousel({ quizzes }: { quizzes: Quiz[] }) {
     setCurrent(p => (p + 1) % quizzes.length);
   }
 
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+    isDragging.current = true;
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    if (!isDragging.current) return;
+    touchEndX.current = e.touches[0].clientX;
+
+    // Feedback visual durante o arrasto
+    const diff = touchEndX.current - touchStartX.current;
+    if (trackRef.current) {
+      trackRef.current.style.transition = "none";
+      trackRef.current.style.transform = `translateX(calc(-${current * 100}% + ${diff}px))`;
+    }
+  }
+
+  function handleTouchEnd() {
+    isDragging.current = false;
+    const diff = touchEndX.current - touchStartX.current;
+
+    // Restaura a transição suave
+    if (trackRef.current) {
+      trackRef.current.style.transition = "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)";
+    }
+
+    // Mínimo de 50px para considerar swipe
+    if (Math.abs(diff) > 50) {
+      if (diff < 0) {
+        next();
+      } else {
+        prev();
+      }
+    } else {
+      // Volta para posição original se não arrastou o suficiente
+      if (trackRef.current) {
+        trackRef.current.style.transform = `translateX(-${current * 100}%)`;
+      }
+    }
+
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  }
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
@@ -73,8 +120,12 @@ export default function FeaturedCarousel({ quizzes }: { quizzes: Quiz[] }) {
         </div>
       </div>
 
-      {/* Container com overflow hidden */}
-      <div className="overflow-hidden rounded-2xl shadow-sm shadow-purple-100">
+      <div
+        className="overflow-hidden rounded-2xl shadow-sm shadow-purple-100"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div
           ref={trackRef}
           className="flex"
@@ -89,8 +140,6 @@ export default function FeaturedCarousel({ quizzes }: { quizzes: Quiz[] }) {
               <div key={quiz.id} className="min-w-full">
                 <Link href={`/quiz/${quiz.slug}`}>
                   <div className="bg-white relative">
-
-                    {/* Imagem */}
                     {quiz.image_url ? (
                       <img src={quiz.image_url} alt={quiz.title} className="w-full h-44 object-cover" />
                     ) : (
@@ -99,25 +148,10 @@ export default function FeaturedCarousel({ quizzes }: { quizzes: Quiz[] }) {
                       </div>
                     )}
 
-                    {/* Indicadores sobre a imagem */}
-                    <div className="absolute top-3 right-3 flex gap-1.5">
-                      {quizzes.map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={e => { e.preventDefault(); setCurrent(i); }}
-                          className={`h-1.5 rounded-full transition-all duration-300 ${
-                            i === current ? "bg-white w-5" : "bg-white/50 w-1.5"
-                          }`}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Número atual */}
                     <div className="absolute top-3 left-3 bg-black/30 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-lg">
                       {idx + 1} / {quizzes.length}
                     </div>
 
-                    {/* Conteúdo */}
                     <div className="p-4">
                       {quiz.type === "personality" ? (
                         <span className="inline-flex items-center gap-1 text-xs font-bold bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-lg mb-2">
@@ -152,7 +186,7 @@ export default function FeaturedCarousel({ quizzes }: { quizzes: Quiz[] }) {
         </div>
       </div>
 
-      {/* Indicadores embaixo */}
+      {/* Indicadores */}
       <div className="flex justify-center gap-1.5 mt-3">
         {quizzes.map((_, i) => (
           <button
